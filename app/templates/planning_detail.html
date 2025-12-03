@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}Planning {{ extension.name }} - Yeastar Manager{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('planning.index') }}">Planning</a></li>
+                    <li class="breadcrumb-item active">{{ extension.number }} - {{ extension.name }}</li>
+                </ol>
+            </nav>
+            <h1 class="h2">
+                Planning de {{ extension.name }}
+            </h1>
+            <p class="text-muted">Extension {{ extension.number }}</p>
+        </div>
+        <div class="col-auto">
+            <button type="button" class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#icalSyncModal">
+                <i class="bi bi-calendar-sync"></i> Sync iCal/iPlanning
+            </button>
+            <form method="POST" action="{{ url_for('planning.clear_planning', extension_id=extension.id) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir effacer tout le planning ?')" style="display: inline;">
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="bi bi-trash"></i> Effacer tout le planning
+                </button>
+            </form>
+        </div>
+    </div>
+
+ 
+    {% if has_specific %}
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-calendar-check"></i> Planning avec dates spécifiques (30 prochains jours)</h5>
+        </div>
+        <div class="card-body">
+            {% if specific_by_date %}
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Horaires</th>
+                            <th>Statut</th>
+                            <th>Source</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for date_str, schedules in specific_by_date.items() %}
+                            {% for schedule in schedules %}
+                            <tr>
+                                {% if loop.first %}
+                                <td rowspan="{{ schedules|length }}">
+                                    <strong>{{ schedule.specific_date.strftime('%d/%m/%Y') }}</strong><br>
+                                    <small class="text-muted">{{ ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'][schedule.specific_date.weekday()] }}</small>
+                                </td>
+                                {% endif %}
+                                <td>
+                                    <i class="bi bi-clock"></i> {{ schedule.start_time }} - {{ schedule.end_time }}
+                                </td>
+                                <td>
+                                    <span class="badge status-{{ schedule.status }}">{{ schedule.status }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ schedule.source }}</span>
+                                </td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('planning.delete_schedule', schedule_id=schedule.id) }}" style="display: inline;">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Supprimer ce créneau ?')">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center">Aucun créneau avec date spécifique</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    
+    {% if has_recurring %}
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0"><i class="bi bi-calendar-week"></i> Planning récurrent (hebdomadaire)</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for day in days %}
+                <div class="col-md-6 mb-4">
+                    <div class="card bg-light">
+                        <div class="card-header">
+                            <strong>{{ day }}</strong>
+                        </div>
+                        <div class="card-body">
+                            {% if weekly_schedule[day] %}
+                            <div class="list-group list-group-flush">
+                                {% for schedule in weekly_schedule[day] %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="bi bi-clock"></i>
+                                        {{ schedule.start_time }} - {{ schedule.end_time }}
+                                        <span class="badge status-{{ schedule.status }} ms-2">{{ schedule.status }}</span>
+                                    </div>
+                                    <form method="POST" action="{{ url_for('planning.delete_schedule', schedule_id=schedule.id) }}" style="display: inline;">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Supprimer ce créneau ?')">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-muted text-center mb-0 small">Aucun créneau</p>
+                            {% endif %}
+
+                            <button type="button" class="btn btn-sm btn-outline-primary w-100 mt-2" data-bs-toggle="modal" data-bs-target="#addModal{{ loop.index0 }}">
+                                <i class="bi bi-plus"></i> Ajouter un créneau
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="addModal{{ loop.index0 }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form method="POST" action="{{ url_for('planning.add_schedule', extension_id=extension.id) }}">
+                                <input type="hidden" name="day_of_week" value="{{ loop.index0 }}">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Ajouter un créneau - {{ day }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Heure de début</label>
+                                        <input type="time" class="form-control" name="start_time" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Heure de fin</label>
+                                        <input type="time" class="form-control" name="end_time" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Statut</label>
+                                        <select class="form-select" name="status">
+                                            <option value="available" selected>Disponible</option>
+                                            <option value="away">Absent</option>
+                                            <option value="do_not_disturb">Ne pas déranger</option>
+                                            <option value="face_a_face_pedagogique">Face à face pédagogique</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                    <button type="submit" class="btn btn-primary">Ajouter</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not has_recurring and not has_specific %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> Aucun planning défini pour cette extension.
+        Utilisez le bouton "Sync iCal/iPlanning" pour synchroniser depuis iPlanning, ou ajoutez des créneaux manuellement.
+    </div>
+    {% endif %}
+    <div class="modal fade" id="icalSyncModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="{{ url_for('planning.sync_ical', extension_id=extension.id) }}">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Synchroniser depuis iPlanning</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Token iCal personnel</label>
+                            <input type="text" class="form-control" name="ical_token"
+                                   value="{{ extension.ical_token if extension.ical_token else '' }}"
+                                   placeholder="xU4wgfFqCb08FrMHrvv8Axq4s0TE8dhk" required>
+                            <div class="form-text">
+                                Collez le token iCal personnel de ce collaborateur.<br>
+                                Exemple d'URL iPlanning: <code>https://cfamfeo.imfr.fr/V2/iplanning/feed/ical/?u=TOKEN</code>
+                            </div>
+                        </div>
+                        {% if extension.ical_token %}
+                        <div class="alert alert-info small">
+                            <i class="bi bi-info-circle"></i> Token actuel: <code>{{ extension.ical_token }}</code>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-download"></i> Synchroniser
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

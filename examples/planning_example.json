@@ -1,0 +1,48 @@
+{
+  "planning": [
+    {
+      "extension": "2001",
+      "name": "Jean Dupont",
+      "schedules": [
+        { "day": "monday", "start": "08:00", "end": "12:00", "status": "available" },
+        { "day": "monday", "start": "14:00", "end": "18:00", "status": "available" },
+        { "day": "tuesday", "start": "08:00", "end": "12:00", "status": "available" },
+        { "day": "tuesday", "start": "14:00", "end": "18:00", "status": "available" },
+        { "day": "wednesday", "start": "08:00", "end": "12:00", "status": "available" },
+        { "day": "wednesday", "start": "14:00", "end": "18:00", "status": "available" },
+        { "day": "thursday", "start": "08:00", "end": "12:00", "status": "available" },
+        { "day": "thursday", "start": "14:00", "end": "18:00", "status": "available" },
+        { "day": "friday", "start": "08:00", "end": "12:00", "status": "available" },
+        { "day": "friday", "start": "14:00", "end": "17:00", "status": "available" }
+      ]
+    },
+    {
+      "extension": "2002",
+      "name": "Marie Martin",
+      "schedules": [
+        { "day": "monday", "start": "09:00", "end": "12:30", "status": "available" },
+        { "day": "monday", "start": "13:30", "end": "17:30", "status": "available" },
+        { "day": "tuesday", "start": "09:00", "end": "12:30", "status": "available" },
+        { "day": "tuesday", "start": "13:30", "end": "17:30", "status": "available" },
+        { "day": "wednesday", "start": "09:00", "end": "12:30", "status": "available" },
+        { "day": "thursday", "start": "09:00", "end": "12:30", "status": "available" },
+        { "day": "thursday", "start": "13:30", "end": "17:30", "status": "available" },
+        { "day": "friday", "start": "09:00", "end": "12:30", "status": "available" }
+      ]
+    },
+    {
+      "extension": "2003",
+      "name": "Pierre Durand",
+      "default_status": "away",
+      "schedules": [
+        { "day": "monday", "start": "10:00", "end": "16:00", "status": "available" },
+        { "day": "wednesday", "start": "10:00", "end": "16:00", "status": "available" },
+        { "day": "friday", "start": "10:00", "end": "16:00", "status": "available" }
+      ]
+    }
+  ],
+  "settings": {
+    "default_unavailable_status": "do_not_disturb",
+    "timezone": "Europe/Paris"
+  }
+}

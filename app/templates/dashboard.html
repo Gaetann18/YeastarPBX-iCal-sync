@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Yeastar Manager{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </h1>
+            <p class="text-muted">Surveillance des extensions et statuts de présence</p>
+        </div>
+        <div class="col-auto">
+            <form method="POST" action="{{ url_for('dashboard.set_all_available') }}" style="display: inline;" onsubmit="return confirm('Mettre TOUTES les extensions en disponible ?')">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-circle"></i> Tous disponibles
+                </button>
+            </form>
+            <a href="{{ url_for('dashboard.refresh_extensions') }}" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-clockwise"></i> Rafraîchir depuis API
+            </a>
+            <a href="{{ url_for('dashboard.sync_now') }}" class="btn btn-primary">
+                <i class="bi bi-lightning-fill"></i> Synchroniser maintenant
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-gear-fill"></i> Configuration système (depuis .env)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p class="mb-1"><strong>API Yeastar:</strong></p>
+                            <p class="text-muted mb-3"><i class="bi bi-server"></i> {{ yeastar_config.pbx_url or 'Non configuré' }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="mb-1"><strong>Synchronisation API Yeastar:</strong></p>
+                            <p class="text-muted mb-3"><i class="bi bi-clock-history"></i> Toutes les {{ yeastar_config.sync_interval }} minute(s)</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="mb-1"><strong>Synchronisation iCal:</strong></p>
+                            <p class="text-muted mb-3"><i class="bi bi-calendar-sync"></i> Toutes les {{ yeastar_config.ical_sync_interval }} minute(s)</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p class="mb-1"><strong>Statut par défaut:</strong></p>
+                            <p class="text-muted mb-0"><span class="badge status-{{ yeastar_config.default_status }}">{{ yeastar_config.default_status }}</span></p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="mb-1"><strong>Base de données:</strong></p>
+                            <p class="text-muted mb-0"><i class="bi bi-database"></i> {{ yeastar_config.db_type }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="mb-0">{{ extensions|length }}</h3>
+                    <small class="text-muted">Extensions totales</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="mb-0 text-success">{{ extensions|selectattr('planning_enabled')|list|length }}</h3>
+                    <small class="text-muted">Planning activé</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="mb-0 text-primary">{{ extensions|selectattr('current_status', 'equalto', 'available')|list|length }}</h3>
+                    <small class="text-muted">Disponibles</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="mb-0 text-warning">
+                        {% if config %}
+                            {{ config.sync_interval_minutes }} min
+                        {% else %}
+                            -
+                        {% endif %}
+                    </h3>
+                    <small class="text-muted">Intervalle de sync</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-telephone"></i> Extensions</h5>
+        </div>
+        <div class="card-body">
+            {% if extensions %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Numéro</th>
+                            <th>Nom</th>
+                            <th>Statut actuel</th>
+                            <th>Planning</th>
+                            <th>Override</th>
+                            <th>Dernière sync Yeastar</th>
+                            <th>Sync iCal</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ext in extensions %}
+                        <tr>
+                            <td><strong>{{ ext.number }}</strong></td>
+                            <td>{{ ext.name or '-' }}</td>
+                            <td>
+                                {% set status_class = 'status-' + (ext.current_status or 'unknown') %}
+                                <span class="badge badge-status {{ status_class }}">
+                                    {{ ext.current_status or 'Inconnu' }}
+                                </span>
+                            </td>
+                            <td>
+                                <form method="POST" action="{{ url_for('dashboard.toggle_planning', extension_id=ext.id) }}" style="display: inline;">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" role="switch"
+                                               {% if ext.planning_enabled %}checked{% endif %}
+                                               onchange="this.form.submit()">
+                                    </div>
+                                </form>
+                            </td>
+                            <td>
+                                <form method="POST" action="{{ url_for('dashboard.toggle_override', extension_id=ext.id) }}" style="display: inline;">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" role="switch"
+                                               {% if ext.override_enabled %}checked{% endif %}
+                                               onchange="this.form.submit()"
+                                               title="Si activé, ignore le planning automatique">
+                                    </div>
+                                </form>
+                            </td>
+                            <td>
+                                {% if ext.last_synced_at %}
+                                    <small class="text-muted">{{ (ext.last_synced_at | local_time).strftime('%H:%M:%S') }}</small>
+                                {% else %}
+                                    <small class="text-muted">Jamais</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if ext.ical_token %}
+                                    {% if ext.last_ical_sync_at %}
+                                        <small class="text-success">
+                                            <i class="bi bi-check-circle"></i> {{ (ext.last_ical_sync_at | local_time).strftime('%H:%M:%S') }}
+                                        </small>
+                                    {% else %}
+                                        <small class="text-warning">
+                                            <i class="bi bi-clock"></i> En attente
+                                        </small>
+                                    {% endif %}
+                                {% else %}
+                                    <small class="text-muted">-</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#overrideModal{{ ext.id }}">
+                                        <i class="bi bi-clock-history"></i> Override
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                      
+                        <div class="modal fade" id="overrideModal{{ ext.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form method="POST" action="{{ url_for('dashboard.set_override', extension_id=ext.id) }}">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Override - {{ ext.name }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="mb-3">
+                                                <label class="form-label">Statut</label>
+                                                <select class="form-select" name="status" required>
+                                                    <option value="available">Disponible</option>
+                                                    <option value="away">Absent</option>
+                                                    <option value="do_not_disturb">Ne pas déranger</option>
+                                                    <option value="business_trip">Déplacement</option>
+                                                    <option value="face_a_face_pedagogique">Face à face pédagogique</option>
+                                                    <option value="off_work">Hors service</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Raison (optionnel)</label>
+                                                <input type="text" class="form-control" name="reason" placeholder="Ex: Formation, congés...">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Durée (heures)</label>
+                                                <input type="number" class="form-control" name="duration" min="0" placeholder="0 = illimité">
+                                                <small class="text-muted">Laisser vide ou 0 pour un override permanent</small>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                            <button type="submit" class="btn btn-primary">Définir override</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                <p class="mt-3">Aucune extension trouvée</p>
+                <a href="{{ url_for('dashboard.refresh_extensions') }}" class="btn btn-primary">
+                    <i class="bi bi-download"></i> Importer depuis l'API
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+  
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-journal-text"></i> Logs récents</h5>
+        </div>
+        <div class="card-body">
+            {% if recent_logs %}
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Horodatage</th>
+                            <th>Extension</th>
+                            <th>Action</th>
+                            <th>Changement</th>
+                            <th>Type</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in recent_logs %}
+                        <tr>
+                            <td><small>{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</small></td>
+                            <td>
+                                {% if log.extension %}
+                                {{ log.extension.number }} - {{ log.extension.name }}
+                                {% else %}
+                                Système
+                                {% endif %}
+                            </td>
+                            <td>{{ log.action }}</td>
+                            <td>
+                                {% if log.old_status and log.new_status %}
+                                <span class="badge status-{{ log.old_status }}">{{ log.old_status }}</span>
+                                <i class="bi bi-arrow-right"></i>
+                                <span class="badge status-{{ log.new_status }}">{{ log.new_status }}</span>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td><span class="badge bg-secondary">{{ log.trigger_type }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center">Aucun log disponible</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-refresh toutes les 30 secondes
+    /*
+    setInterval(function() {
+        fetch('{{ url_for("dashboard.api_extensions") }}')
+            .then(response => response.json())
+            .then(data => {
+                console.log('Extensions mises à jour', data);
+                // Vous pouvez mettre à jour le DOM ici sans recharger la page
+            });
+    }, 30000);
+    */
+</script>
+{% endblock %}

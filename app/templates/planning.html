@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Planning - Yeastar Manager{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2">
+                <i class="bi bi-calendar3"></i> Gestion des plannings
+            </h1>
+            <p class="text-muted">Gérez les créneaux de disponibilité de vos extensions</p>
+        </div>
+        <div class="col-auto">
+            <form method="POST" action="{{ url_for('planning.sync_all_ical') }}" style="display: inline;" onsubmit="return confirm('Synchroniser tous les plannings iCal maintenant ?')">
+                <button type="submit" class="btn btn-success me-2">
+                    <i class="bi bi-arrow-repeat"></i> Sync tous les iCal
+                </button>
+            </form>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importModal">
+                <i class="bi bi-upload"></i> Importer un planning
+            </button>
+        </div>
+    </div>
+
+    {% if planning_data %}
+    <div class="row">
+        {% for item in planning_data %}
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ item.extension.number }}</strong> - {{ item.extension.name }}
+                    </div>
+                    <div>
+                        <a href="{{ url_for('planning.view_extension', extension_id=item.extension.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i> Éditer
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if item.schedules %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Jour</th>
+                                    <th>Horaires</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for schedule in item.schedules %}
+                                <tr>
+                                    <td>
+                                        {% set days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'] %}
+                                        {{ days[schedule.day_of_week] }}
+                                    </td>
+                                    <td>{{ schedule.start_time }} - {{ schedule.end_time }}</td>
+                                    <td>
+                                        <span class="badge status-{{ schedule.status }}">{{ schedule.status }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center mb-0">Aucun créneau défini</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-calendar-x" style="font-size: 3rem; color: #ccc;"></i>
+            <h4 class="mt-3">Aucun planning configuré</h4>
+            <p class="text-muted">Activez le planning pour des extensions dans le <a href="{{ url_for('dashboard.index') }}">Dashboard</a> pour commencer.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="modal fade" id="importModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('planning.import_planning') }}" enctype="multipart/form-data">
+                <div class="modal-header">
+                    <h5 class="modal-title">Importer un planning</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Fichier CSV ou JSON</label>
+                        <input class="form-control" type="file" id="file" name="file" accept=".csv,.json" required>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong><i class="bi bi-info-circle"></i> Formats supportés</strong>
+
+                        <h6 class="mt-3">CSV</h6>
+                        <p class="small mb-2">Colonnes requises: <code>extension</code>, <code>day</code>, <code>start_time</code>, <code>end_time</code>, <code>status</code> (optionnel)</p>
+                        <pre class="bg-light p-2 small">extension,day,start_time,end_time,status
+2000,lundi,08:00,12:00,available
+2000,lundi,14:00,18:00,available
+2001,monday,09:00,17:00,available</pre>
+
+                        <h6 class="mt-3">JSON</h6>
+                        <pre class="bg-light p-2 small">[
+  {
+    "extension": "2000",
+    "schedules": [
+      {"day": "monday", "start": "08:00", "end": "12:00", "status": "available"},
+      {"day": "monday", "start": "14:00", "end": "18:00", "status": "available"}
+    ]
+  }
+]</pre>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <small>
+                            <strong>Note :</strong> Les créneaux importés seront ajoutés aux plannings existants.
+                            Pour remplacer un planning, effacez-le d'abord.
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-upload"></i> Importer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

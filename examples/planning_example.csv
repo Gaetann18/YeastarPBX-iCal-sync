@@ -1,0 +1,27 @@
+# Exemple de fichier planning CSV
+# Format : extension,jour,heure_debut,heure_fin,statut
+#
+# Jours : monday, tuesday, wednesday, thursday, friday, saturday, sunday
+# Statuts : available, away, do_not_disturb, lunch, business_trip, off_work
+#
+# Les créneaux non définis seront considérés comme indisponibles
+
+extension,jour,heure_debut,heure_fin,statut
+2001,monday,08:00,12:00,available
+2001,monday,14:00,18:00,available
+2001,tuesday,08:00,12:00,available
+2001,tuesday,14:00,18:00,available
+2001,wednesday,08:00,12:00,available
+2001,wednesday,14:00,18:00,available
+2001,thursday,08:00,12:00,available
+2001,thursday,14:00,18:00,available
+2001,friday,08:00,12:00,available
+2001,friday,14:00,17:00,available
+2002,monday,09:00,12:30,available
+2002,monday,13:30,17:30,available
+2002,tuesday,09:00,12:30,available
+2002,tuesday,13:30,17:30,available
+2002,wednesday,09:00,12:30,available
+2002,thursday,09:00,12:30,available
+2002,thursday,13:30,17:30,available
+2002,friday,09:00,12:30,available

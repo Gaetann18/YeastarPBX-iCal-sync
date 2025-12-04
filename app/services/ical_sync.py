@@ -1,10 +1,3 @@
-"""
-Service de synchronisation iCal/iPlanning
-
-Permet de récupérer et parser des calendriers iCal depuis iPlanning
-pour synchroniser les plannings des utilisateurs.
-"""
-
 import requests
 from icalendar import Calendar
 from datetime import datetime, timedelta
@@ -62,12 +55,10 @@ class ICalSyncService:
         for component in calendar.walk():
             if component.name == "VEVENT":
                 try:
-                    # Récupérer les informations de l'événement
                     dtstart = component.get('dtstart').dt
                     dtend = component.get('dtend').dt
                     summary = str(component.get('summary', ''))
 
-                    # Convertir en datetime avec timezone si nécessaire
                     if isinstance(dtstart, datetime):
                         if dtstart.tzinfo is None:
                             dtstart = self.timezone.localize(dtstart)
@@ -80,9 +71,7 @@ class ICalSyncService:
                         else:
                             dtend = dtend.astimezone(self.timezone)
 
-                
                     if isinstance(dtstart, datetime) and isinstance(dtend, datetime):
-                        
                         if dtend >= now and dtstart <= end_date:
                             status = self._determine_status(summary)
 
@@ -91,7 +80,7 @@ class ICalSyncService:
                                 'end': dtend,
                                 'summary': summary,
                                 'status': status,
-                                'day_of_week': dtstart.weekday(),  # 0=lundi, 6=dimanche
+                                'day_of_week': dtstart.weekday(),
                                 'start_time': dtstart.strftime('%H:%M'),
                                 'end_time': dtend.strftime('%H:%M')
                             })
@@ -118,11 +107,9 @@ class ICalSyncService:
         """
         summary_lower = summary.lower()
 
-        # Vérifier si c'est un cours (face à face pédagogique)
         if 'cours :' in summary_lower or 'cours:' in summary_lower:
             return 'face_a_face_pedagogique'
 
-        # Par défaut, si quelque chose est dans le calendrier → ne pas déranger
         return 'do_not_disturb'
 
     def sync_extension_from_ical(self, extension, ical_url: str) -> bool:
@@ -145,20 +132,17 @@ class ICalSyncService:
             logger.error("Échec de récupération du calendrier")
             return False
 
-
         events = self.parse_events(calendar)
         logger.info(f"{len(events)} événements parsés")
 
-     
         deleted_count = Schedule.query.filter_by(extension_id=extension.id, source='ical').delete()
         logger.info(f"{deleted_count} anciens créneaux iCal supprimés")
-
 
         for event in events:
             schedule = Schedule(
                 extension_id=extension.id,
-                specific_date=event['start'].date(),  # Date spécifique
-                day_of_week=None,  # Pas de récurrence hebdomadaire
+                specific_date=event['start'].date(),
+                day_of_week=None,
                 start_time=event['start_time'],
                 end_time=event['end_time'],
                 status=event['status'],

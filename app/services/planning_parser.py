@@ -5,9 +5,6 @@ from datetime import datetime
 
 
 class PlanningParser:
-    """Service de parsing de différents formats de planning"""
-
-    # Mapping des jours en français vers numéros
     DAY_MAPPING = {
         'lundi': 0, 'monday': 0,
         'mardi': 1, 'tuesday': 1,
@@ -20,18 +17,12 @@ class PlanningParser:
 
     @staticmethod
     def parse_csv(content: str):
-        """
-        Parse un fichier CSV
-        Format attendu: extension,day,start_time,end_time,status
-        Exemple: 2000,lundi,08:00,12:00,available
-        """
         results = []
         errors = []
 
         try:
             reader = csv.DictReader(StringIO(content))
 
-            
             required_columns = ['extension', 'day', 'start_time', 'end_time']
             if not all(col in reader.fieldnames for col in required_columns):
                 return None, f"Colonnes requises manquantes. Attendues: {', '.join(required_columns)}"
@@ -44,13 +35,11 @@ class PlanningParser:
                     end_time = row['end_time'].strip()
                     status = row.get('status', 'available').strip()
 
-                
                     day_of_week = PlanningParser.DAY_MAPPING.get(day_str)
                     if day_of_week is None:
                         errors.append(f"Ligne {i}: Jour invalide '{row['day']}'")
                         continue
 
-               
                     try:
                         datetime.strptime(start_time, '%H:%M')
                         datetime.strptime(end_time, '%H:%M')
@@ -79,18 +68,6 @@ class PlanningParser:
 
     @staticmethod
     def parse_json(content: str):
-        """
-        Parse un fichier JSON
-        Format attendu:
-        [
-            {
-                "extension": "2000",
-                "schedules": [
-                    {"day": "monday", "start": "08:00", "end": "12:00", "status": "available"}
-                ]
-            }
-        ]
-        """
         results = []
         errors = []
 
@@ -115,13 +92,11 @@ class PlanningParser:
                         end_time = schedule.get('end', '')
                         status = schedule.get('status', 'available')
 
-        
                         day_of_week = PlanningParser.DAY_MAPPING.get(day_str)
                         if day_of_week is None:
                             errors.append(f"Extension {extension}, créneau {j+1}: Jour invalide '{day_str}'")
                             continue
 
-                    
                         try:
                             datetime.strptime(start_time, '%H:%M')
                             datetime.strptime(end_time, '%H:%M')
@@ -152,7 +127,6 @@ class PlanningParser:
 
     @staticmethod
     def validate_time_format(time_str: str) -> bool:
-        """Valide le format HH:MM"""
         try:
             datetime.strptime(time_str, '%H:%M')
             return True

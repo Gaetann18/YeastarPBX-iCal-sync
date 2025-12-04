@@ -29,13 +29,11 @@ class SchedulerService:
         if start <= end:
             return start <= current <= end
         else:
-           
             return current >= start or current <= end
 
     @staticmethod
     def get_desired_status(extension):
         """Détermine le statut souhaité pour une extension"""
-     
         active_override = Override.query.filter_by(extension_id=extension.id).filter(
             (Override.expires_at.is_(None)) | (Override.expires_at > datetime.utcnow())
         ).first()
@@ -48,18 +46,15 @@ class SchedulerService:
             default_status = os.environ.get('DEFAULT_STATUS', 'available')
             return default_status, 'no_planning'
 
-       
         if extension.override_enabled:
             logger.info(f"Extension {extension.number}: Override activé - planning automatique ignoré")
             return extension.current_status, 'override_manual'
-
 
         current_day = SchedulerService.get_current_day_of_week()
         current_time = SchedulerService.get_current_time()
         current_date = datetime.now().date()
 
         logger.debug(f"Extension {extension.number}: Recherche planning pour date={current_date}, heure={current_time}")
-
 
         specific_schedules = Schedule.query.filter_by(
             extension_id=extension.id,
@@ -74,7 +69,6 @@ class SchedulerService:
                 logger.info(f"Extension {extension.number}: MATCH créneau spécifique {schedule.start_time}-{schedule.end_time} -> {schedule.status}")
                 return schedule.status, 'schedule_specific'
 
-       
         recurring_schedules = Schedule.query.filter_by(
             extension_id=extension.id,
             day_of_week=current_day,
@@ -85,7 +79,6 @@ class SchedulerService:
             if SchedulerService.time_in_range(schedule.start_time, schedule.end_time, current_time):
                 return schedule.status, 'schedule_recurring'
 
- 
         import os
         default_status = os.environ.get('DEFAULT_STATUS', 'available')
         return default_status, 'outside_schedule'
@@ -95,7 +88,6 @@ class SchedulerService:
         """Synchronise toutes les extensions avec planning activé"""
         import os
 
-       
         pbx_url = os.environ.get('YEASTAR_PBX_URL')
         client_id = os.environ.get('YEASTAR_CLIENT_ID')
         client_secret = os.environ.get('YEASTAR_CLIENT_SECRET')
@@ -104,7 +96,6 @@ class SchedulerService:
             logger.error("Configuration API Yeastar manquante dans .env")
             return
 
-     
         api = YeastarAPI(pbx_url, client_id, client_secret)
 
         extensions = Extension.query.all()
@@ -113,12 +104,9 @@ class SchedulerService:
 
         for extension in extensions:
             try:
-             
                 desired_status, reason = SchedulerService.get_desired_status(extension)
 
-           
                 if extension.current_status != desired_status:
-                   
                     success, message = api.update_extension_status(extension.yeastar_id, desired_status)
 
                     if success:
@@ -126,7 +114,6 @@ class SchedulerService:
                         extension.current_status = desired_status
                         extension.last_synced_at = datetime.utcnow()
 
-                        
                         log = Log(
                             extension_id=extension.id,
                             action=f"Changement de statut automatique",
@@ -142,7 +129,6 @@ class SchedulerService:
                         error_count += 1
                         logger.error(f"Erreur mise à jour extension {extension.number}: {message}")
 
-                        
                         log = Log(
                             extension_id=extension.id,
                             action="Échec de mise à jour",
@@ -151,7 +137,6 @@ class SchedulerService:
                         )
                         db.session.add(log)
                 else:
-                    
                     extension.last_synced_at = datetime.utcnow()
 
             except Exception as e:
@@ -166,7 +151,6 @@ class SchedulerService:
                 )
                 db.session.add(log)
 
-        
         db.session.commit()
 
         logger.info(f"Synchronisation terminée: {synced_count} mises à jour, {error_count} erreurs")
@@ -189,19 +173,16 @@ class SchedulerService:
         if extensions_data is None:
             return False, message
 
-       
         for ext_data in extensions_data:
             extension = Extension.query.filter_by(yeastar_id=ext_data['id']).first()
 
             if extension:
-                
                 extension.number = ext_data['number']
                 extension.name = ext_data.get('caller_id_name', '')
                 extension.email = ext_data.get('email_addr', '')
                 extension.current_status = ext_data.get('presence_status', 'unknown')
                 extension.last_synced_at = datetime.utcnow()
             else:
-            
                 extension = Extension(
                     yeastar_id=ext_data['id'],
                     number=ext_data['number'],

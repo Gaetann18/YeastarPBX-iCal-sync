@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 from app import create_app
 load_dotenv()
 
-# Create database directory before setting DATABASE_URL
 db_dir = 'C:/temp/yeastar' if os.name == 'nt' else '/tmp/yeastar'
 os.makedirs(db_dir, exist_ok=True)
 os.environ['DATABASE_URL'] = f'sqlite:///{db_dir}/app.db'

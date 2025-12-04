@@ -6,25 +6,22 @@ import os
 
 
 class YeastarAPI:
-    
-    REQUEST_DELAY = 2 # en secondes
+    REQUEST_DELAY = 2
     last_request_time = None
 
     def __init__(self, pbx_url, client_id, client_secret, config_model=None):
         self.pbx_url = pbx_url.rstrip('/')
         self.client_id = client_id
         self.client_secret = client_secret
-        self.config_model = config_model 
+        self.config_model = config_model
         self.access_token = None
         self.token_expires_at = None
 
-        
         if self.config_model:
             self.access_token = self.config_model.access_token
             self.token_expires_at = self.config_model.token_expires_at
 
     def _rate_limit(self):
-        
         if YeastarAPI.last_request_time is not None:
             elapsed = time.time() - YeastarAPI.last_request_time
             if elapsed < self.REQUEST_DELAY:
@@ -33,15 +30,13 @@ class YeastarAPI:
         YeastarAPI.last_request_time = time.time()
 
     def _get_headers(self):
-        
         return {
             'Content-Type': 'application/json',
             'User-Agent': 'OpenAPI'
         }
 
     def authenticate(self):
-        
-        self._rate_limit() 
+        self._rate_limit()
 
         url = f"{self.pbx_url}/openapi/v1.0/get_token"
         payload = {
@@ -54,7 +49,7 @@ class YeastarAPI:
                 url,
                 json=payload,
                 headers=self._get_headers(),
-                verify=False,  
+                verify=False,
                 timeout=10
             )
             response.raise_for_status()
@@ -90,7 +85,6 @@ class YeastarAPI:
         return True, "Token valide"
 
     def get_extensions(self):
-
         success, message = self._ensure_valid_token()
         if not success:
             return None, message
@@ -124,7 +118,7 @@ class YeastarAPI:
         if not success:
             return False, message
 
-        self._rate_limit() 
+        self._rate_limit()
 
         url = f"{self.pbx_url}/openapi/v1.0/extension/update"
         params = {'access_token': self.access_token}

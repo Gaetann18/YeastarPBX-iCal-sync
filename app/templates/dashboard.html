@@ -36,25 +36,20 @@
                     <div class="row">
                         <div class="col-md-4">
                             <p class="mb-1"><strong>API Yeastar:</strong></p>
-                            <p class="text-muted mb-3"><i class="bi bi-server"></i> {{ yeastar_config.pbx_url or 'Non configuré' }}</p>
+                            <p class="text-muted mb-3"><i class="bi bi-server"></i> {{ yeastar_config.pbx_url if yeastar_config else 'Non configuré' }}</p>
                         </div>
                         <div class="col-md-4">
-                            <p class="mb-1"><strong>Synchronisation API Yeastar:</strong></p>
-                            <p class="text-muted mb-3"><i class="bi bi-clock-history"></i> Toutes les {{ yeastar_config.sync_interval }} minute(s)</p>
+                            <p class="mb-1"><strong>Synchronisation:</strong></p>
+                            <p class="text-muted mb-3"><i class="bi bi-clock-history"></i> Toutes les {{ yeastar_config.sync_interval_minutes if yeastar_config else 'N/A' }} minute(s)</p>
                         </div>
                         <div class="col-md-4">
-                            <p class="mb-1"><strong>Synchronisation iCal:</strong></p>
-                            <p class="text-muted mb-3"><i class="bi bi-calendar-sync"></i> Toutes les {{ yeastar_config.ical_sync_interval }} minute(s)</p>
+                            <p class="mb-1"><strong>Statut par défaut:</strong></p>
+                            <p class="text-muted mb-3"><span class="badge status-{{ yeastar_config.default_unavailable_status if yeastar_config else 'available' }}">{{ yeastar_config.default_unavailable_status if yeastar_config else 'available' }}</span></p>
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-4">
-                            <p class="mb-1"><strong>Statut par défaut:</strong></p>
-                            <p class="text-muted mb-0"><span class="badge status-{{ yeastar_config.default_status }}">{{ yeastar_config.default_status }}</span></p>
-                        </div>
-                        <div class="col-md-4">
-                            <p class="mb-1"><strong>Base de données:</strong></p>
-                            <p class="text-muted mb-0"><i class="bi bi-database"></i> {{ yeastar_config.db_type }}</p>
+                        <div class="col-md-12 text-end">
+                            <a href="{{ url_for('config.index') }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-gear"></i> Modifier la configuration</a>
                         </div>
                     </div>
                 </div>

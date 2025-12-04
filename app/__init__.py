@@ -39,10 +39,12 @@ def create_app():
     from app.routes.dashboard import dashboard_bp
     from app.routes.planning import planning_bp
     from app.routes.api import api_bp
+    from app.routes.config import config_bp
 
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(planning_bp)
     app.register_blueprint(api_bp)
+    app.register_blueprint(config_bp)
 
     scheduler = BackgroundScheduler()
 

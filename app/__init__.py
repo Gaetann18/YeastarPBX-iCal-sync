@@ -5,14 +5,10 @@ from apscheduler.triggers.interval import IntervalTrigger
 import os
 import logging
 
-# Initialiser la base de données
 from app.models import db
 
 
 def create_app():
-    """Factory pour créer l'application Flask"""
-
-   
     instance_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'instance')
     os.makedirs(instance_path, exist_ok=True)
     os.makedirs(os.path.join(instance_path, 'uploads'), exist_ok=True)

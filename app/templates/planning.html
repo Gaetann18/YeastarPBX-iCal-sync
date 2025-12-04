@@ -39,32 +39,39 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    {% if item.schedules %}
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Jour</th>
-                                    <th>Horaires</th>
-                                    <th>Statut</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for schedule in item.schedules %}
-                                <tr>
-                                    <td>
-                                        {% set days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'] %}
-                                        {{ days[schedule.day_of_week] }}
-                                    </td>
-                                    <td>{{ schedule.start_time }} - {{ schedule.end_time }}</td>
-                                    <td>
-                                        <span class="badge status-{{ schedule.status }}">{{ schedule.status }}</span>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                    {% if item.total_count > 0 %}
+                        {% if item.schedules %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Jour</th>
+                                        <th>Horaires</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for schedule in item.schedules %}
+                                    <tr>
+                                        <td>
+                                            {% set days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'] %}
+                                            {{ days[schedule.day_of_week] }}
+                                        </td>
+                                        <td>{{ schedule.start_time }} - {{ schedule.end_time }}</td>
+                                        <td>
+                                            <span class="badge status-{{ schedule.status }}">{{ schedule.status }}</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+                        {% if item.total_count > item.schedules|length %}
+                        <p class="text-muted text-center mb-0 mt-2">
+                            <i class="bi bi-calendar-check"></i> {{ item.total_count - item.schedules|length }} planning(s) avec dates spécifiques
+                        </p>
+                        {% endif %}
                     {% else %}
                     <p class="text-muted text-center mb-0">Aucun créneau défini</p>
                     {% endif %}

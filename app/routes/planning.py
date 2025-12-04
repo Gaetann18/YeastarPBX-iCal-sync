@@ -16,16 +16,19 @@ def index():
     extensions = Extension.query.filter_by(planning_enabled=True).order_by(Extension.number).all()
     planning_data = []
     for ext in extensions:
-        # Only show recurring schedules (day_of_week is not None) in the summary
         schedules = Schedule.query.filter_by(
             extension_id=ext.id,
             specific_date=None
         ).filter(
             Schedule.day_of_week.isnot(None)
         ).order_by(Schedule.day_of_week, Schedule.start_time).all()
+
+        total_schedules = Schedule.query.filter_by(extension_id=ext.id).count()
+
         planning_data.append({
             'extension': ext,
-            'schedules': schedules
+            'schedules': schedules,
+            'total_count': total_schedules
         })
 
     return render_template('planning.html', planning_data=planning_data)

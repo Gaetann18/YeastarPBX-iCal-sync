@@ -6,111 +6,114 @@
 <div class="row">
     <div class="col-12">
         <h1 class="mb-4"><i class="bi bi-gear-fill"></i> Configuration du système</h1>
+        <p class="text-muted">Configuration chargée depuis le fichier .env et la base de données</p>
     </div>
 </div>
 
 <div class="row">
-    <div class="col-lg-8">
-        <div class="card">
+    <div class="col-lg-6">
+        <div class="card mb-4">
             <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="bi bi-sliders"></i> Paramètres API Yeastar</h5>
+                <h5 class="mb-0"><i class="bi bi-server"></i> API Yeastar</h5>
             </div>
             <div class="card-body">
-                <form method="POST" action="{{ url_for('config.update') }}">
-                    <div class="mb-3">
-                        <label for="pbx_url" class="form-label">URL du PBX Yeastar</label>
-                        <input type="url" class="form-control" id="pbx_url" name="pbx_url"
-                               value="{{ config.pbx_url if config else '' }}"
-                               placeholder="https://your-pbx.com" required>
-                        <div class="form-text">L'URL complète de votre PBX Yeastar (avec https://)</div>
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">URL du PBX</label>
+                    <p class="text-muted">{{ config.pbx_url if config else 'Non configuré' }}</p>
+                </div>
 
-                    <div class="mb-3">
-                        <label for="client_id" class="form-label">Client ID</label>
-                        <input type="text" class="form-control" id="client_id" name="client_id"
-                               value="{{ config.client_id if config else '' }}" required>
-                        <div class="form-text">Identifiant de l'application API</div>
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Client ID</label>
+                    <p class="text-muted">{{ config.client_id if config else 'Non configuré' }}</p>
+                </div>
 
-                    <div class="mb-3">
-                        <label for="client_secret" class="form-label">Client Secret</label>
-                        <input type="password" class="form-control" id="client_secret" name="client_secret"
-                               placeholder="{% if config and config.client_secret_encrypted %}••••••••{% else %}Entrez le client secret{% endif %}">
-                        <div class="form-text">
-                            {% if config and config.client_secret_encrypted %}
-                            Le secret est déjà configuré. Laissez vide pour ne pas le modifier.
-                            {% else %}
-                            Secret de l'application API (sera chiffré en base de données)
-                            {% endif %}
-                        </div>
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Client Secret</label>
+                    <p class="text-muted">
+                        {% if config and config.client_secret_encrypted %}
+                        <i class="bi bi-lock-fill text-success"></i> Configuré et chiffré
+                        {% else %}
+                        <i class="bi bi-exclamation-triangle-fill text-warning"></i> Non configuré
+                        {% endif %}
+                    </p>
+                </div>
 
-                    <hr class="my-4">
-
-                    <div class="mb-3">
-                        <label for="sync_interval_minutes" class="form-label">Intervalle de synchronisation (minutes)</label>
-                        <input type="number" class="form-control" id="sync_interval_minutes" name="sync_interval_minutes"
-                               value="{{ config.sync_interval_minutes if config else 5 }}" min="1" max="60" required>
-                        <div class="form-text">Fréquence de vérification des plannings et mise à jour des statuts</div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="default_unavailable_status" class="form-label">Statut par défaut</label>
-                        <select class="form-select" id="default_unavailable_status" name="default_unavailable_status">
-                            <option value="available" {% if config and config.default_unavailable_status == 'available' %}selected{% endif %}>Available (Disponible)</option>
-                            <option value="away" {% if config and config.default_unavailable_status == 'away' %}selected{% endif %}>Away (Absent)</option>
-                            <option value="do_not_disturb" {% if config and config.default_unavailable_status == 'do_not_disturb' %}selected{% endif %}>Do Not Disturb (Ne pas déranger)</option>
-                            <option value="busy" {% if config and config.default_unavailable_status == 'busy' %}selected{% endif %}>Busy (Occupé)</option>
-                        </select>
-                        <div class="form-text">Statut appliqué aux extensions en dehors des horaires de planning</div>
-                    </div>
-
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left"></i> Annuler
-                        </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-lg"></i> Enregistrer
-                        </button>
-                    </div>
-                </form>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Token d'accès</label>
+                    <p class="text-muted">
+                        {% if config and config.access_token %}
+                        <i class="bi bi-check-circle-fill text-success"></i> Actif
+                        {% if config.token_expires_at %}
+                        - Expire le {{ config.token_expires_at|local_time|strftime('%d/%m/%Y %H:%M') }}
+                        {% endif %}
+                        {% else %}
+                        <i class="bi bi-x-circle-fill text-danger"></i> Aucun token actif
+                        {% endif %}
+                    </p>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="col-lg-4">
-        <div class="card border-info">
-            <div class="card-header bg-info text-white">
-                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Aide</h6>
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Synchronisation</h5>
             </div>
             <div class="card-body">
-                <h6>Configuration API</h6>
-                <p class="small">Pour obtenir vos identifiants API Yeastar :</p>
-                <ol class="small">
-                    <li>Connectez-vous à votre PBX Yeastar</li>
-                    <li>Allez dans <strong>Settings > API</strong></li>
-                    <li>Créez une nouvelle application API</li>
-                    <li>Copiez le Client ID et Client Secret</li>
-                </ol>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Intervalle de synchronisation</label>
+                    <p class="text-muted">{{ config.sync_interval_minutes if config else 5 }} minute(s)</p>
+                </div>
 
-                <hr>
-
-                <h6>Intervalles de synchronisation</h6>
-                <p class="small">
-                    Une valeur trop basse (1-2 min) augmente la charge serveur.
-                    Une valeur recommandée est de 5 minutes.
-                </p>
-
-                <hr>
-
-                <h6>Statuts disponibles</h6>
-                <ul class="small">
-                    <li><strong>Available:</strong> Extension disponible</li>
-                    <li><strong>Away:</strong> Extension absente</li>
-                    <li><strong>Busy:</strong> Extension occupée</li>
-                    <li><strong>Do Not Disturb:</strong> Ne pas déranger</li>
-                </ul>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Statut par défaut</label>
+                    <p class="text-muted">
+                        <span class="badge status-{{ config.default_unavailable_status if config else 'available' }}">
+                            {{ config.default_unavailable_status if config else 'available' }}
+                        </span>
+                    </p>
+                </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Statuts disponibles</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <span class="badge status-available fs-6">available</span>
+                        <p class="small text-muted mt-2">Extension disponible pour recevoir des appels</p>
+                    </div>
+                    <div class="col-md-3">
+                        <span class="badge status-away fs-6">away</span>
+                        <p class="small text-muted mt-2">Extension absente temporairement</p>
+                    </div>
+                    <div class="col-md-3">
+                        <span class="badge status-busy fs-6">busy</span>
+                        <p class="small text-muted mt-2">Extension occupée</p>
+                    </div>
+                    <div class="col-md-3">
+                        <span class="badge status-do_not_disturb fs-6">do_not_disturb</span>
+                        <p class="small text-muted mt-2">Ne pas déranger</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <strong>Note :</strong> Pour modifier la configuration, éditez le fichier <code>.env</code> à la racine du projet et redémarrez l'application.
         </div>
     </div>
 </div>

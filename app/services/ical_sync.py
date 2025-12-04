@@ -95,7 +95,7 @@ class ICalSyncService:
         summary_lower = summary.lower()
 
         if 'cours :' in summary_lower or 'cours:' in summary_lower:
-            return 'busy'
+            return 'lunch'
 
         if 'formation' in summary_lower:
             return 'business_trip'
@@ -104,7 +104,7 @@ class ICalSyncService:
             return 'do_not_disturb'
 
         if 'serv :' in summary_lower:
-            return 'do_not_disturb'
+            return 'away'
 
         return 'do_not_disturb'
 

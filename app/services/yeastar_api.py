@@ -56,8 +56,9 @@ class YeastarAPI:
             data = response.json()
 
             if data.get('errcode') == 0:
-                self.access_token = data['access_token']
-                self.token_expires_at = datetime.utcnow() + timedelta(seconds=data['access_token_expire_time'])
+                token_data = data.get('data', data)
+                self.access_token = token_data['access_token']
+                self.token_expires_at = datetime.utcnow() + timedelta(seconds=token_data.get('access_token_expire_time', 1800))
                 if self.config_model:
                     from app.models import db
                     self.config_model.access_token = self.access_token

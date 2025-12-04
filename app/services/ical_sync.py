@@ -92,23 +92,19 @@ class ICalSyncService:
         return events
 
     def _determine_status(self, summary: str) -> str:
-        """
-        Détermine le statut Yeastar basé sur le titre de l'événement iCal
-
-        Règles:
-        - Si l'événement contient "cours :" ou "cours:" → face_a_face_pedagogique
-        - Sinon, par défaut → do_not_disturb (ne pas déranger)
-
-        Args:
-            summary: Titre de l'événement
-
-        Returns:
-            Statut Yeastar correspondant
-        """
         summary_lower = summary.lower()
 
         if 'cours :' in summary_lower or 'cours:' in summary_lower:
-            return 'face_a_face_pedagogique'
+            return 'busy'
+
+        if 'formation' in summary_lower:
+            return 'business_trip'
+
+        if 'réunion' in summary_lower or 'reunion' in summary_lower:
+            return 'do_not_disturb'
+
+        if 'serv :' in summary_lower:
+            return 'do_not_disturb'
 
         return 'do_not_disturb'
 

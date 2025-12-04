@@ -113,6 +113,35 @@ class YeastarAPI:
         except requests.exceptions.RequestException as e:
             return None, f"Erreur de connexion: {str(e)}"
 
+    def get_presence_statuses(self):
+        success, message = self._ensure_valid_token()
+        if not success:
+            return None, message
+
+        self._rate_limit()
+
+        url = f"{self.pbx_url}/openapi/v1.0/presence_status/list"
+        params = {'access_token': self.access_token}
+
+        try:
+            response = requests.get(
+                url,
+                params=params,
+                headers=self._get_headers(),
+                verify=False,
+                timeout=10
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            if data.get('errcode') == 0:
+                return data.get('data', []), "Statuts récupérés"
+            else:
+                return None, f"Erreur API: {data.get('errmsg', 'Erreur inconnue')}"
+
+        except requests.exceptions.RequestException as e:
+            return None, f"Erreur de connexion: {str(e)}"
+
     def update_extension_status(self, extension_id, status):
         success, message = self._ensure_valid_token()
         if not success:

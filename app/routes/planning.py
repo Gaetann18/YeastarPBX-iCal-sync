@@ -16,7 +16,13 @@ def index():
     extensions = Extension.query.filter_by(planning_enabled=True).order_by(Extension.number).all()
     planning_data = []
     for ext in extensions:
-        schedules = Schedule.query.filter_by(extension_id=ext.id).order_by(Schedule.day_of_week, Schedule.start_time).all()
+        # Only show recurring schedules (day_of_week is not None) in the summary
+        schedules = Schedule.query.filter_by(
+            extension_id=ext.id,
+            specific_date=None
+        ).filter(
+            Schedule.day_of_week.isnot(None)
+        ).order_by(Schedule.day_of_week, Schedule.start_time).all()
         planning_data.append({
             'extension': ext,
             'schedules': schedules

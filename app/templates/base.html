@@ -106,6 +106,9 @@
             <a class="nav-link {% if request.endpoint and request.endpoint.startswith('planning') %}active{% endif %}" href="{{ url_for('planning.index') }}">
                 <i class="bi bi-calendar3"></i> Planning
             </a>
+            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('config') %}active{% endif %}" href="{{ url_for('config.index') }}">
+                <i class="bi bi-gear"></i> Configuration
+            </a>
         </nav>
     </div>
 

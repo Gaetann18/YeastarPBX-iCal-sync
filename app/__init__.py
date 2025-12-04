@@ -21,6 +21,30 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+
+        from app.models import Config
+        from app.services.yeastar_api import CryptoService
+
+        config = Config.query.first()
+        if not config:
+            pbx_url = os.getenv('YEASTAR_PBX_URL')
+            client_id = os.getenv('YEASTAR_CLIENT_ID')
+            client_secret = os.getenv('YEASTAR_CLIENT_SECRET')
+            sync_interval = int(os.getenv('SYNC_INTERVAL_MINUTES', 5))
+            default_status = os.getenv('DEFAULT_STATUS', 'available')
+
+            if pbx_url and client_id and client_secret:
+                config = Config(
+                    pbx_url=pbx_url,
+                    client_id=client_id,
+                    client_secret_encrypted=CryptoService.encrypt(client_secret),
+                    sync_interval_minutes=sync_interval,
+                    default_unavailable_status=default_status
+                )
+                db.session.add(config)
+                db.session.commit()
+                logging.info("Configuration initiale créée depuis .env")
+
     from datetime import datetime
     import pytz
 

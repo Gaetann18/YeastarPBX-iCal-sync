@@ -14,7 +14,7 @@ def index():
 
     return render_template('dashboard.html',
                            extensions=extensions,
-                           yeastar_config=config,
+                           config=config,
                            recent_logs=recent_logs)
 
 

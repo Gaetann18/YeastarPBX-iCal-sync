@@ -2,26 +2,23 @@ from datetime import datetime, time
 from app.models import db, Extension, Schedule, Override, Log, Config
 from app.services.yeastar_api import YeastarAPI, CryptoService
 import logging
+import time as time_module
 
 logger = logging.getLogger(__name__)
 
 
 class SchedulerService:
-    """Service de synchronisation automatique des statuts"""
 
     @staticmethod
     def get_current_day_of_week():
-        """Retourne le jour de la semaine (0=lundi, 6=dimanche)"""
         return datetime.now().weekday()
 
     @staticmethod
     def get_current_time():
-        """Retourne l'heure actuelle au format HH:MM"""
         return datetime.now().strftime('%H:%M')
 
     @staticmethod
     def time_in_range(start_str, end_str, current_str):
-        """Vérifie si current_time est entre start_time et end_time"""
         start = datetime.strptime(start_str, '%H:%M').time()
         end = datetime.strptime(end_str, '%H:%M').time()
         current = datetime.strptime(current_str, '%H:%M').time()
@@ -33,7 +30,6 @@ class SchedulerService:
 
     @staticmethod
     def get_desired_status(extension):
-        """Détermine le statut souhaité pour une extension"""
         active_override = Override.query.filter_by(extension_id=extension.id).filter(
             (Override.expires_at.is_(None)) | (Override.expires_at > datetime.utcnow())
         ).first()
@@ -85,7 +81,6 @@ class SchedulerService:
 
     @staticmethod
     def sync_all_extensions():
-        """Synchronise toutes les extensions avec planning activé"""
         import os
 
         pbx_url = os.environ.get('YEASTAR_PBX_URL')
@@ -98,7 +93,9 @@ class SchedulerService:
 
         api = YeastarAPI(pbx_url, client_id, client_secret)
 
-        extensions = Extension.query.all()
+        extensions = Extension.query.filter_by(planning_enabled=True).all()
+        logger.info(f"Synchronisation de {len(extensions)} extension(s) avec planning activé")
+
         synced_count = 0
         error_count = 0
 
@@ -107,6 +104,7 @@ class SchedulerService:
                 desired_status, reason = SchedulerService.get_desired_status(extension)
 
                 if extension.current_status != desired_status:
+                    time_module.sleep(0.5)
                     success, message = api.update_extension_status(extension.yeastar_id, desired_status)
 
                     if success:
@@ -157,7 +155,6 @@ class SchedulerService:
 
     @staticmethod
     def refresh_extensions_from_api():
-        """Rafraîchit la liste des extensions depuis l'API"""
         import os
 
         pbx_url = os.environ.get('YEASTAR_PBX_URL')
@@ -173,7 +170,10 @@ class SchedulerService:
         if extensions_data is None:
             return False, message
 
-        for ext_data in extensions_data:
+        for i, ext_data in enumerate(extensions_data):
+            if i > 0 and i % 10 == 0:
+                time_module.sleep(1)
+
             extension = Extension.query.filter_by(yeastar_id=ext_data['id']).first()
 
             if extension:

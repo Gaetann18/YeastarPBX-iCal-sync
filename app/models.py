@@ -47,13 +47,13 @@ class Schedule(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     extension_id = db.Column(db.Integer, db.ForeignKey('extensions.id'), nullable=False)
 
-    day_of_week = db.Column(db.Integer)  # 0=lundi, 6=dimanche (NULL si date spécifique)
-    specific_date = db.Column(db.Date)  # Date spécifique (NULL si récurrent)
+    day_of_week = db.Column(db.Integer)
+    specific_date = db.Column(db.Date)
 
-    start_time = db.Column(db.String(5), nullable=False)  # Format HH:MM
+    start_time = db.Column(db.String(5), nullable=False)
     end_time = db.Column(db.String(5), nullable=False)
     status = db.Column(db.String(50), default='available')
-    source = db.Column(db.String(20), default='manual')  # 'manual' 'ical' 'csv'
+    source = db.Column(db.String(20), default='manual')
 
 
 class Override(db.Model):
@@ -75,6 +75,6 @@ class Log(db.Model):
     action = db.Column(db.String(255), nullable=False)
     old_status = db.Column(db.String(50))
     new_status = db.Column(db.String(50))
-    trigger_type = db.Column(db.String(50))  # 'schedule' 'override' 'manual' 'api_error'
+    trigger_type = db.Column(db.String(50))
     details = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

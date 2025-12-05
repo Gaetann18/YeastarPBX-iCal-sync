@@ -9,21 +9,11 @@ logger = logging.getLogger(__name__)
 
 
 class ICalSyncService:
-    """Service pour synchroniser les plannings depuis iCal/iPlanning"""
 
     def __init__(self, timezone='Europe/Paris'):
         self.timezone = pytz.timezone(timezone)
 
     def fetch_ical(self, url: str) -> Optional[Calendar]:
-        """
-        Récupère et parse un calendrier iCal depuis une URL
-
-        Args:
-            url: URL du flux iCal (ex: https://cfamfeo.imfr.fr/V2/iplanning/feed/ical/?u=TOKEN)
-
-        Returns:
-            Calendar object ou None si erreur
-        """
         try:
             logger.info(f"Récupération du calendrier iCal depuis: {url}")
             response = requests.get(url, timeout=30, verify=False)
@@ -38,16 +28,6 @@ class ICalSyncService:
             return None
 
     def parse_events(self, calendar: Calendar, days_ahead: int = 30) -> List[Dict]:
-        """
-        Parse les événements du calendrier et les convertit en créneaux de planning
-
-        Args:
-            calendar: Objet Calendar iCal
-            days_ahead: Nombre de jours à l'avance à récupérer (défaut: 30)
-
-        Returns:
-            Liste de dictionnaires avec les créneaux
-        """
         events = []
         now = datetime.now(self.timezone)
         end_date = now + timedelta(days=days_ahead)
@@ -109,16 +89,6 @@ class ICalSyncService:
         return 'do_not_disturb'
 
     def sync_extension_from_ical(self, extension, ical_url: str) -> bool:
-        """
-        Synchronise le planning d'une extension depuis son URL iCal
-
-        Args:
-            extension: Objet Extension de la base de données
-            ical_url: URL du flux iCal
-
-        Returns:
-            True si succès, False sinon
-        """
         from app.models import db, Schedule
 
         logger.info(f"Début de synchronisation iCal pour extension {extension.number}")

@@ -68,12 +68,11 @@ def toggle_override(extension_id):
 
 @dashboard_bp.route('/extension/<int:extension_id>/override', methods=['POST'])
 def set_override(extension_id):
-    """Définir un override manuel"""
     extension = Extension.query.get_or_404(extension_id)
 
     status = request.form.get('status')
     reason = request.form.get('reason', '')
-    duration = request.form.get('duration', type=int)  # en heures
+    duration = request.form.get('duration', type=int)
 
     if not status:
         flash('Statut requis', 'error')

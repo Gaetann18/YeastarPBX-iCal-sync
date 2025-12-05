@@ -140,7 +140,7 @@ def create_app():
 
     scheduler.add_job(
         func=ical_sync_job,
-        trigger=IntervalTrigger(minutes=1),
+        trigger=IntervalTrigger(minutes=30),
         id='sync_ical',
         name='Synchronisation iCal',
         replace_existing=True

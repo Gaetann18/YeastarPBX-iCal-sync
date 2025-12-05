@@ -6,7 +6,7 @@ import os
 
 
 class YeastarAPI:
-    REQUEST_DELAY = 2
+    REQUEST_DELAY = 3
     last_request_time = None
 
     def __init__(self, pbx_url, client_id, client_secret, config_model=None):

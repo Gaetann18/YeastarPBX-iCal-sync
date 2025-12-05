@@ -81,17 +81,12 @@ class SchedulerService:
 
     @staticmethod
     def sync_all_extensions():
-        import os
+        from app.services.api_manager import APIManager
 
-        pbx_url = os.environ.get('YEASTAR_PBX_URL')
-        client_id = os.environ.get('YEASTAR_CLIENT_ID')
-        client_secret = os.environ.get('YEASTAR_CLIENT_SECRET')
-
-        if not pbx_url or not client_id or not client_secret:
-            logger.error("Configuration API Yeastar manquante dans .env")
+        api = APIManager.get_instance().get_api()
+        if not api:
+            logger.error("Impossible d'initialiser l'API Yeastar")
             return
-
-        api = YeastarAPI(pbx_url, client_id, client_secret)
 
         extensions = Extension.query.filter_by(planning_enabled=True).all()
         logger.info(f"Synchronisation de {len(extensions)} extension(s) avec planning activé")
@@ -104,7 +99,7 @@ class SchedulerService:
                 desired_status, reason = SchedulerService.get_desired_status(extension)
 
                 if extension.current_status != desired_status:
-                    time_module.sleep(0.5)
+                    time_module.sleep(1)
                     success, message = api.update_extension_status(extension.yeastar_id, desired_status)
 
                     if success:
@@ -155,16 +150,11 @@ class SchedulerService:
 
     @staticmethod
     def refresh_extensions_from_api():
-        import os
+        from app.services.api_manager import APIManager
 
-        pbx_url = os.environ.get('YEASTAR_PBX_URL')
-        client_id = os.environ.get('YEASTAR_CLIENT_ID')
-        client_secret = os.environ.get('YEASTAR_CLIENT_SECRET')
-
-        if not pbx_url or not client_id or not client_secret:
-            return False, "Configuration API Yeastar manquante dans .env (YEASTAR_PBX_URL, YEASTAR_CLIENT_ID, YEASTAR_CLIENT_SECRET)"
-
-        api = YeastarAPI(pbx_url, client_id, client_secret)
+        api = APIManager.get_instance().get_api()
+        if not api:
+            return False, "Impossible d'initialiser l'API Yeastar"
 
         extensions_data, message = api.get_extensions()
         if extensions_data is None:

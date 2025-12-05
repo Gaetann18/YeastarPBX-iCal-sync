@@ -20,7 +20,18 @@ def index():
 
 @dashboard_bp.route('/refresh')
 def refresh_extensions():
+    config = Config.query.first()
+    if config and config.last_refresh_at:
+        time_since_refresh = (datetime.utcnow() - config.last_refresh_at).total_seconds()
+        if time_since_refresh < 300:
+            flash(f'Rafraîchissement trop fréquent. Attendez {int(300 - time_since_refresh)} secondes.', 'warning')
+            return redirect(url_for('dashboard.index'))
+
     success, message = SchedulerService.refresh_extensions_from_api()
+
+    if success and config:
+        config.last_refresh_at = datetime.utcnow()
+        db.session.commit()
 
     if success:
         flash(message, 'success')

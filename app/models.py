@@ -15,6 +15,7 @@ class Config(db.Model):
     sync_interval_minutes = db.Column(db.Integer, default=5)
     access_token = db.Column(db.Text)
     token_expires_at = db.Column(db.DateTime)
+    last_refresh_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

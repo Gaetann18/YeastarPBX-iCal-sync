@@ -59,7 +59,7 @@
                                         </td>
                                         <td>{{ schedule.start_time }} - {{ schedule.end_time }}</td>
                                         <td>
-                                            <span class="badge status-{{ schedule.status }}">{{ schedule.status }}</span>
+                                            {{ schedule.status | status_badge | safe }}
                                         </td>
                                     </tr>
                                     {% endfor %}

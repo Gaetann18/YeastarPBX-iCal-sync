@@ -93,10 +93,11 @@
                             <td><strong>{{ ext.number }}</strong></td>
                             <td>{{ ext.name or '-' }}</td>
                             <td>
-                                {% set status_class = 'status-' + (ext.current_status or 'unknown') %}
-                                <span class="badge badge-status {{ status_class }}">
-                                    {{ ext.current_status or 'Inconnu' }}
-                                </span>
+                                {% if ext.current_status %}
+                                    {{ ext.current_status | status_badge | safe }}
+                                {% else %}
+                                    <span class="badge bg-secondary">Inconnu</span>
+                                {% endif %}
                             </td>
                             <td>
                                 <form method="POST" action="{{ url_for('dashboard.toggle_planning', extension_id=ext.id) }}" style="display: inline;">
@@ -162,10 +163,10 @@
                                                 <label class="form-label">Statut</label>
                                                 <select class="form-select" name="status" required>
                                                     <option value="available">Disponible</option>
+                                                    <option value="lunch">En face à face pédagogique</option>
+                                                    <option value="business_trip">Formation</option>
                                                     <option value="away">Absent</option>
                                                     <option value="do_not_disturb">Ne pas déranger</option>
-                                                    <option value="business_trip">Déplacement</option>
-                                                    <option value="face_a_face_pedagogique">Face à face pédagogique</option>
                                                     <option value="off_work">Hors service</option>
                                                 </select>
                                             </div>
@@ -235,9 +236,9 @@
                             <td>{{ log.action }}</td>
                             <td>
                                 {% if log.old_status and log.new_status %}
-                                <span class="badge status-{{ log.old_status }}">{{ log.old_status }}</span>
+                                {{ log.old_status | status_badge | safe }}
                                 <i class="bi bi-arrow-right"></i>
-                                <span class="badge status-{{ log.new_status }}">{{ log.new_status }}</span>
+                                {{ log.new_status | status_badge | safe }}
                                 {% else %}
                                 -
                                 {% endif %}

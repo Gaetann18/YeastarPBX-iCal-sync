@@ -56,6 +56,20 @@ def create_app():
             utc_dt = pytz.utc.localize(utc_dt)
         local_tz = pytz.timezone('Europe/Paris')
         return utc_dt.astimezone(local_tz)
+
+    from app.status_mapping import get_status_display, get_status_label, get_status_badge_html
+
+    @app.template_filter('status_label')
+    def status_label_filter(status):
+        return get_status_label(status)
+
+    @app.template_filter('status_badge')
+    def status_badge_filter(status):
+        return get_status_badge_html(status)
+
+    @app.context_processor
+    def inject_status_mapping():
+        return dict(get_status_display=get_status_display)
     from app.routes.dashboard import dashboard_bp
     from app.routes.planning import planning_bp
     from app.routes.api import api_bp

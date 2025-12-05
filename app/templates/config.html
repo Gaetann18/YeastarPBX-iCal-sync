@@ -86,28 +86,35 @@
                 <h5 class="mb-0"><i class="bi bi-info-circle"></i> Statuts disponibles</h5>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3">
-                        <span class="badge status-available fs-6">available</span>
+                <p class="mb-3">Voici les statuts utilisés par le système et leur signification :</p>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        {{ 'available' | status_badge | safe }}
                         <p class="small text-muted mt-2">Extension disponible pour recevoir des appels</p>
                     </div>
-                    <div class="col-md-3">
-                        <span class="badge status-away fs-6">away</span>
-                        <p class="small text-muted mt-2">Extension absente temporairement</p>
+                    <div class="col-md-4">
+                        {{ 'lunch' | status_badge | safe }}
+                        <p class="small text-muted mt-2">En cours de face à face pédagogique avec les élèves</p>
                     </div>
-                    <div class="col-md-3">
-                        <span class="badge status-busy fs-6">busy</span>
-                        <p class="small text-muted mt-2">Extension occupée</p>
+                    <div class="col-md-4">
+                        {{ 'business_trip' | status_badge | safe }}
+                        <p class="small text-muted mt-2">En formation ou déplacement professionnel</p>
                     </div>
-                    <div class="col-md-3">
-                        <span class="badge status-do_not_disturb fs-6">do_not_disturb</span>
-                        <p class="small text-muted mt-2">Ne pas déranger</p>
+                    <div class="col-md-4">
+                        {{ 'away' | status_badge | safe }}
+                        <p class="small text-muted mt-2">Absent temporairement (service, pause, etc.)</p>
+                    </div>
+                    <div class="col-md-4">
+                        {{ 'do_not_disturb' | status_badge | safe }}
+                        <p class="small text-muted mt-2">Ne pas déranger (réunion, tâche importante)</p>
+                    </div>
+                    <div class="col-md-4">
+                        {{ 'off_work' | status_badge | safe }}
+                        <p class="small text-muted mt-2">Hors service (fin de journée, congés)</p>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
+
+                <hr class="my-4">
 
 <div class="row mt-4">
     <div class="col-12">

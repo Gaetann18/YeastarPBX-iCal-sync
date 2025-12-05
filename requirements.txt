@@ -2,9 +2,7 @@
 Flask==3.1.2
 Flask-SQLAlchemy==3.1.1
 Flask-Login==0.6.3
-# Ajoutez ces lignes si vous utilisez PostgreSQL ou MySQL:
-# psycopg2-binary==2.9.9  # Pour PostgreSQL
-# PyMySQL==1.1.0          # Pour MySQL
+PyMySQL==1.1.0
 SQLAlchemy==2.0.44
 APScheduler==3.11.1
 icalendar==6.3.2
